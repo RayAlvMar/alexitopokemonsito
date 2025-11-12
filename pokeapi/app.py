@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+import requests
 
 API = "https://pokeapi.co/api/v2/pokemon/"
 app = Flask(__name__)
@@ -16,12 +17,20 @@ def search_pokemon():
         flash('Por favor, ingresa un nombre de Pokemon','error')
         return redirect(url_for('index'))
     
-    resp = request.get(f"(API){pokemon_name}")
-    
-    if resp.status_code == 200:
-        pokemon_data = resp.json()
+    try:
+        
+        resp = request.get(f"(API){pokemon_name}")
+        if resp.status_code == 200:
+            pokemon_data = resp.json()
+            
+            pokemon_info = {
+                'name': pokemon_data['name'].title(),
+                'id': pokemon_data['id'],
+                'height': pokemon_data['height'] / 10,
+                'weight': pokemon_data['weight'] / 10,
+                'image': pokemon_data['sprites']['front_default'],
+                'types': [t['type']['name'].title() for t in pokemon_data['types']]
+            }
         return render_template('pokemon.html', pokemon=pokemon_data)
-    
-    
 if __name__ == '__main__':
     app.run(debug=True)
